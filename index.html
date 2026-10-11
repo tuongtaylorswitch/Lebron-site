@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lebron site</title>
+  <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgNiJp8YTdPtWoIBg5bViZ_pUZffJvqtI_pKg67JImdw&s=10">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800;900&display=swap&subset=vietnamese" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Lebron site</h1>
+  </header>
+
+  <main>
+    <section id="welcome-box" class="welcome-box" hidden>
+      <p id="welcome-message"></p>
+      <button id="logout-button" class="secondary-button" type="button">Đăng xuất</button>
+    </section>
+
+    <form id="magic-link-form" class="login-form">
+      <label for="email">Đăng nhập với email</label>
+      <div class="email-row">
+        <input id="email" name="email" type="email" placeholder="you@example.com" required>
+        <button id="magic-link-button" type="submit">Tiếp tục</button>
+      </div>
+      <p id="magic-link-result">Nhập email để bắt đầu.</p>
+    </form>
+
+    <form id="verify-code-form" class="login-form verify-form" hidden>
+      <label for="login-code">Nhập mã 6 số</label>
+      <div class="email-row">
+        <input id="login-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required>
+        <button id="verify-code-button" type="submit">Xác nhận</button>
+      </div>
+      <p id="verify-code-result">Mã nằm trong email vừa gửi.</p>
+    </form>
+
+    <section class="random-box" aria-live="polite">
+      <button id="random-button" type="button">Lấy số random từ server</button>
+      <p id="random-result">Bấm nút để nhận số random.</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
