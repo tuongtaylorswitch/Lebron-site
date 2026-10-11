@@ -1,5 +1,3 @@
-<img width="1365" height="685" alt="image" src="https://github.com/user-attachments/assets/c22dda39-478d-4ebc-9438-26e303bfdacd" /># Lebron-site
-
 A personal web project featuring user authentication with magic links and a self-hosted deployment setup.
 
 **Live Website:** [https://lebronjames.io.vn/](https://lebronjames.io.vn/)
