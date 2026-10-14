@@ -35,3 +35,13 @@ CREATE TABLE IF NOT EXISTS magic_link_sessions (
     FOREIGN KEY (request_id) REFERENCES magic_link_requests(id)
     ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS payment_statuses (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  is_paid BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_payment_statuses_email (email),
+  INDEX idx_payment_statuses_is_paid (is_paid)
+);

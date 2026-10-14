@@ -16,7 +16,7 @@ services:
       DB_NAME: hello_world
       PUBLIC_URL: ${PUBLIC_URL:-https://lebronjames.io.vn}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
-      MAGIC_LINK_FROM: ${MAGIC_LINK_FROM:-onboarding@resend.dev}
+      MAGIC_LINK_FROM: ${MAGIC_LINK_FROM:-no-reply@lebronjames.io.vn}
       MAGIC_LINK_TTL_MINUTES: ${MAGIC_LINK_TTL_MINUTES:-15}
       SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}

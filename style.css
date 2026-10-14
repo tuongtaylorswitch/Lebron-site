@@ -143,6 +143,74 @@ p {
     0 0 18px rgba(253, 185, 39, 0.32);
 }
 
+.payment-status {
+  max-width: 620px;
+  margin: 18px auto 0;
+  padding: 18px 22px;
+  border: 1px solid rgba(253, 185, 39, 0.48);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 223, 110, 0.12), transparent 44%),
+    linear-gradient(135deg, rgba(253, 185, 39, 0.08), rgba(85, 37, 131, 0.26));
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: #ffdf6e;
+  font-size: clamp(17px, 2.8vw, 24px);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  text-align: center;
+  text-shadow: 0 0 14px rgba(253, 185, 39, 0.22);
+}
+
+.payment-status.is-paid {
+  color: #9dffb3;
+  border-color: rgba(157, 255, 179, 0.64);
+}
+
+.payment-status.is-unpaid {
+  color: #ffdf6e;
+}
+
+.payment-action-box,
+.payment-qr-box {
+  max-width: 620px;
+  margin: 16px auto 0;
+  padding: 18px 22px;
+  border: 1px solid rgba(253, 185, 39, 0.38);
+  border-radius: 18px;
+  background: rgba(24, 0, 46, 0.58);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+  text-align: center;
+}
+
+.payment-qr-box {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+}
+
+.qr-placeholder {
+  display: grid;
+  place-items: center;
+  width: min(220px, 70vw);
+  aspect-ratio: 1;
+  border: 3px dashed rgba(253, 185, 39, 0.7);
+  border-radius: 14px;
+  background: #fff7d6;
+  color: #2d0b4d;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+#payment-update-result {
+  margin: 0;
+  color: #f7e9bd;
+  font-size: 15px;
+}
+
 .login-form {
   display: grid;
   gap: 14px;
@@ -236,4 +304,47 @@ button:hover {
 button:active {
   transform: translateY(6px);
   box-shadow: 0 6px 0 #2d0b4d, 0 14px 24px rgba(0, 0, 0, 0.28);
+}
+
+@media (max-width: 520px) {
+  header {
+    padding: 42px 16px 28px;
+  }
+
+  header::after {
+    right: 12px;
+    bottom: -28px;
+    font-size: 72px;
+  }
+
+  main {
+    width: calc(100% - 24px);
+    margin: 48px auto 24px;
+    padding: 28px 16px;
+    border-radius: 18px;
+  }
+
+  .email-row {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  input[type="email"],
+  input[name="code"],
+  button {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  input[name="code"] {
+    letter-spacing: 0.18em;
+  }
+
+  .login-form label {
+    font-size: 20px;
+  }
+
+  p {
+    font-size: 16px;
+  }
 }

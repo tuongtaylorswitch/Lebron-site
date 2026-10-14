@@ -8,11 +8,13 @@ const app=express();
 const PORT=process.env.PORT||3000;
 const PUBLIC_URL=(process.env.PUBLIC_URL||"https://lebronjames.io.vn").replace(/\/$/,"");
 const RESEND_API_KEY=process.env.RESEND_API_KEY;
-const MAGIC_LINK_FROM=process.env.MAGIC_LINK_FROM||"onboarding@resend.dev";
+const MAGIC_LINK_FROM=process.env.MAGIC_LINK_FROM||"no-reply@lebronjames.io.vn";
 const COOKIE_SECURE=process.env.COOKIE_SECURE!=="false";
 const MAGIC_LINK_TTL_MINUTES=Number(process.env.MAGIC_LINK_TTL_MINUTES||15);
 const SESSION_TTL_DAYS=Number(process.env.SESSION_TTL_DAYS||30);
+const MAGIC_LINK_IP_LIMIT_MS=60*1000;
 const resend=RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+const magicLinkIpRequests=new Map();
 
 const appRoot=__dirname;
 
@@ -60,6 +62,31 @@ function randomOtp(){
 
 function sha256(value){
     return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function getClientIp(req){
+    return req.headers["x-forwarded-for"]?.split(",")[0].trim()||req.ip||req.socket.remoteAddress||"unknown";
+}
+
+function checkMagicLinkIpLimit(req){
+    const ip=getClientIp(req);
+    const now=Date.now();
+    const lastRequestAt=magicLinkIpRequests.get(ip)||0;
+    const waitMs=MAGIC_LINK_IP_LIMIT_MS-(now-lastRequestAt);
+
+    if (waitMs>0) {
+        return Math.ceil(waitMs/1000);
+    }
+
+    magicLinkIpRequests.set(ip,now);
+
+    for (const [storedIp,storedAt] of magicLinkIpRequests) {
+        if (now-storedAt>MAGIC_LINK_IP_LIMIT_MS) {
+            magicLinkIpRequests.delete(storedIp);
+        }
+    }
+
+    return 0;
 }
 
 function parseCookies(header){
@@ -183,6 +210,18 @@ async function ensureTables(){
                 ON DELETE CASCADE
         )
     `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS payment_statuses (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            email VARCHAR(255) NOT NULL,
+            is_paid BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_payment_statuses_email (email),
+            INDEX idx_payment_statuses_is_paid (is_paid)
+        )
+    `);
 }
 
 async function getCurrentSession(req){
@@ -203,6 +242,22 @@ async function getCurrentSession(req){
     );
 
     return rows[0]||null;
+}
+
+async function ensurePaymentStatus(email){
+    await pool.query(
+        `INSERT INTO payment_statuses (email,is_paid)
+         VALUES (?,FALSE)
+         ON DUPLICATE KEY UPDATE email=VALUES(email)`,
+        [email]
+    );
+
+    const [rows]=await pool.query(
+        "SELECT is_paid FROM payment_statuses WHERE email=? LIMIT 1",
+        [email]
+    );
+
+    return Boolean(rows[0]?.is_paid);
 }
 
 async function createSession(connection,request){
@@ -234,6 +289,12 @@ function setSessionCookie(res,sessionToken){
 
 app.post("/api/auth/magic-link",async (req,res,next)=>{
     try {
+        const waitSeconds=checkMagicLinkIpLimit(req);
+
+        if (waitSeconds>0) {
+            return res.status(429).json({error:`IP này vừa yêu cầu gửi email. Vui lòng thử lại sau ${waitSeconds} giây.`});
+        }
+
         const email=normalizeEmail(req.body.email);
 
         if (!isValidEmail(email)) {
@@ -356,9 +417,11 @@ app.post("/api/auth/verify-code",async (req,res,next)=>{
             const sessionToken=await createSession(connection,request);
             await connection.commit();
 
+            const isPaid=await ensurePaymentStatus(request.email);
+
             setSessionCookie(res,sessionToken);
             res.clearCookie("lj_login_request",{path:"/"});
-            res.json({authenticated:true,email:request.email});
+            res.json({authenticated:true,email:request.email,is_paid:isPaid});
         } catch (error) {
             await connection.rollback();
             throw error;
@@ -395,11 +458,31 @@ app.get("/api/auth/me",async (req,res,next)=>{
             return res.status(401).json({authenticated:false});
         }
 
+        const isPaid=await ensurePaymentStatus(session.email);
+
         res.json({
             authenticated:true,
             email:session.email,
+            is_paid:isPaid,
             expires_at:session.expires_at
         });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/api/payment/mark-paid",async (req,res,next)=>{
+    try {
+        const session=await getCurrentSession(req);
+
+        if (!session) {
+            return res.status(401).json({error:"Chưa đăng nhập"});
+        }
+
+        await ensurePaymentStatus(session.email);
+        await pool.query("UPDATE payment_statuses SET is_paid=TRUE WHERE email=?",[session.email]);
+
+        res.json({email:session.email,is_paid:true});
     } catch (error) {
         next(error);
     }
@@ -512,6 +595,7 @@ app.get("/login/:code",async (req,res,next)=>{
 
             const sessionToken=await createSession(connection,request);
             await connection.commit();
+            await ensurePaymentStatus(request.email);
 
             setSessionCookie(res,sessionToken);
             res.clearCookie("lj_login_request",{path:"/"});

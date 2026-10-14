@@ -21,6 +21,18 @@
       <button id="logout-button" class="secondary-button" type="button">Đăng xuất</button>
     </section>
 
+    <section id="payment-status" class="payment-status" hidden></section>
+
+    <section id="payment-action-box" class="payment-action-box" hidden>
+      <button id="start-payment-button" type="button">Tiến hành thanh toán</button>
+    </section>
+
+    <section id="payment-qr-box" class="payment-qr-box" hidden>
+      <div class="qr-placeholder">[Mã QR]</div>
+      <button id="fake-paid-button" type="button">Giả sử đã thanh toán</button>
+      <p id="payment-update-result"></p>
+    </section>
+
     <form id="magic-link-form" class="login-form">
       <label for="email">Đăng nhập với email</label>
       <div class="email-row">
